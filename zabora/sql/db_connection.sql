@@ -2,6 +2,10 @@ SET      pagesize 0
 SET      heading OFF
 SET      feedback OFF
 SET	 verify OFF
-select trim(limit_value-current_utilization) from gv$resource_limit
-where resource_name='processes';
+SELECT
+    TRIM(limit_value - current_utilization)
+FROM
+    gv$resource_limit
+WHERE
+    resource_name = 'processes';
 QUIT;
