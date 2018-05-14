@@ -8,5 +8,5 @@ FROM
     dba_tablespace_usage_metrics ta
     JOIN dba_tablespaces tb ON ta.tablespace_name = tb.tablespace_name
 WHERE
-    tb.tablespace_name = upper('&1');
+    ta.tablespace_name = upper('&1');
 QUIT;
