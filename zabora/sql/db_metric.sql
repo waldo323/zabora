@@ -8,5 +8,5 @@ select      CASE METRIC_NAME
             ELSE AVERAGE
             END AVERAGE
 from    SYS.V_$SYSMETRIC_SUMMARY 
-where   METRIC_NAME in ('&1');
+where   METRIC_ID = '&1';
 QUIT;
