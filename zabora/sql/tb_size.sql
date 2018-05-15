@@ -3,35 +3,23 @@ SET      heading OFF
 SET      feedback OFF
 SET	 verify OFF
 SELECT
-    TRIM(trunc( (10000 * (x.used) ) / y.mbytes) / 100) "pct_used"
+    byte
 FROM
     (
         SELECT
-            b.tablespace_name name,
-            ( SUM(b.bytes) / COUNT(DISTINCT a.file_id
-            || '.'
-            || a.block_id) - SUM(DECODE(a.bytes,NULL,0,a.bytes) ) / COUNT(DISTINCT b.file_id) ) used,
-            ( SUM(DECODE(a.bytes,NULL,0,a.bytes) ) / COUNT(DISTINCT b.file_id) ) free
+            SUM(bytes) AS byte
         FROM
-            sys.dba_data_files b,
-            sys.dba_free_space a
+            dba_data_files
         WHERE
-            a.tablespace_name = upper('&1')
-            AND   a.tablespace_name = b.tablespace_name
-        GROUP BY
-            a.tablespace_name,
-            b.tablespace_name
-    ) x,
-    (
+            tablespace_name = upper('&1')
+        UNION ALL
         SELECT
-            c.tablespace_name name,
-            ( SUM(nvl(DECODE(c.maxbytes,0,c.bytes,c.maxbytes),c.bytes) ) ) mbytes
+            SUM(bytes) AS byte
         FROM
-            sys.dba_data_files c
-        GROUP BY
-            c.tablespace_name
-    ) y
+            dba_temp_files
+        WHERE
+            tablespace_name = upper('&1')
+    )
 WHERE
-    x.name = y.name;
---AND    x.name<>'UNDOTBS1';
+    byte IS NOT NULL;
 QUIT;
