@@ -3,23 +3,37 @@ SET      heading OFF
 SET      feedback OFF
 SET	 verify OFF
 SELECT
-    byte
+    SUM(sum_bytes) bytes
 FROM
     (
         SELECT
-            SUM(bytes) AS byte
+            1,
+            d.tablespace_name,
+            nvl(SUM(bytes),0) AS sum_bytes
         FROM
-            dba_data_files
+            dba_data_files d,
+            dba_tablespaces t
         WHERE
-            tablespace_name = upper('&1')
+            d.tablespace_name = t.tablespace_name
+        GROUP BY
+            1,
+            d.tablespace_name
         UNION ALL
         SELECT
-            SUM(bytes) AS byte
+            2,
+            d.tablespace_name,
+            nvl(SUM(bytes),0) AS sum_bytes
         FROM
-            dba_temp_files
+            dba_temp_files d,
+            dba_tablespaces t
         WHERE
-            tablespace_name = upper('&1')
+            d.tablespace_name = t.tablespace_name
+        GROUP BY
+            2,
+            d.tablespace_name
     )
 WHERE
-    byte IS NOT NULL;
+    tablespace_name =:ts_name
+GROUP BY
+    tablespace_name;
 QUIT;
