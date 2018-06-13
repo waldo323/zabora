@@ -33,7 +33,7 @@ FROM
             d.tablespace_name
     )
 WHERE
-    tablespace_name =:ts_name
+    tablespace_name = '&1'
 GROUP BY
     tablespace_name;
 QUIT;
