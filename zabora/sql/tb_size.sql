@@ -3,7 +3,7 @@ SET      heading OFF
 SET      feedback OFF
 SET	 verify OFF
 SELECT
-    SUM(sum_bytes) bytes
+    TO_CHAR(SUM(sum_bytes),'FM99999999999999990') bytes
 FROM
     (
         SELECT

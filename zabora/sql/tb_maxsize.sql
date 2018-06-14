@@ -3,7 +3,7 @@ SET      heading OFF
 SET      feedback OFF
 SET	 verify OFF
 SELECT
-    ta.tablespace_size * tb.block_size AS bytes
+    TO_CHAR(ta.tablespace_size * tb.block_size,'FM99999999999999990') AS bytes
 FROM
     dba_tablespace_usage_metrics ta
     JOIN dba_tablespaces tb ON ta.tablespace_name = tb.tablespace_name
