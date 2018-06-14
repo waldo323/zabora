@@ -7,7 +7,7 @@ SELECT
         WHEN cant = 0  THEN 0
         ELSE (
             SELECT
-                DECODE(nvl(space_used,0),0,0,ceil( ( (space_used - space_reclaimable) / space_limit) * 100) )
+                DECODE(nvl(space_used,0),0,0,((space_used - space_reclaimable) / space_limit) * 100)
             FROM
                 v$recovery_file_dest
         )
