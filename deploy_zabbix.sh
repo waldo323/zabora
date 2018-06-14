@@ -9,6 +9,7 @@ mkdir -p ${ZABBIX_DIR}/scripts/agentd/zabora
 cp -rpv  ${SOURCE_DIR}/zabora/sql                 ${ZABBIX_DIR}/scripts/agentd/zabora/
 cp -rpv  ${SOURCE_DIR}/zabora/zabora.conf.example ${ZABBIX_DIR}/scripts/agentd/zabora/zabora.conf
 cp -rpv  ${SOURCE_DIR}/zabora/zabora.sh           ${ZABBIX_DIR}/scripts/agentd/zabora/
+cp -rpv  ${SOURCE_DIR}/zabora/zabora_discovery.sh           ${ZABBIX_DIR}/scripts/agentd/zabora/
 cp -rpv  ${SOURCE_DIR}/zabora/zabbix_agentd.conf  ${ZABBIX_DIR}/zabbix_agentd.d/zabora.conf
 
 regex_array[0]="s|ORACLE_USER=.*|ORACLE_USER=\"${ORACLE_USER}\"|g"
