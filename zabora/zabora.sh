@@ -12,7 +12,7 @@ PATH=/usr/local/bin:${PATH}
 APP_NAME=$(basename $0)
 APP_DIR=$(dirname $0)
 APP_VER="1.5.3"
-APP_WEB="http://www.sergiotocalini.com.ar/"
+APP_WEB="https://github.com/huna79/zabora"
 #
 #################################################################################
 
@@ -40,8 +40,8 @@ usage() {
     echo "  -o ARG(str)   Set SID to make the query."
     echo "  -j            Jsonify output."
     echo "  -v            Show the script version."
+    echo "  -d ARG(str)   Discover 'databases' or 'tablespaces'."
     echo ""
-    echo "Please send any bug reports to sergiotocalini@gmail.com"
     exit 1
 }
 
@@ -49,11 +49,24 @@ version() {
     echo "${APP_NAME%.*} ${APP_VER}"
     exit 1
 }
+
+load_oracle() {
+    if [[ -f ${APP_DIR}/zabora.oraenv ]]; then
+       . ${APP_DIR}/zabora.oraenv
+    else
+       ORAENV_ASK=NO
+       . /usr/local/bin/oraenv > /dev/null
+    fi
+}
+
+databases() {
+    echo $(ps -eo command | grep -v sed | sed -n 's/ora_pmon_\(.*\)/\1/p')
+}
 #
 #################################################################################
 
 #################################################################################
-while getopts "s::a:o:hvj:" OPTION; do
+while getopts "s::a:o:hvj:d:" OPTION; do
     case ${OPTION} in
 	h)
 	    usage
@@ -64,29 +77,28 @@ while getopts "s::a:o:hvj:" OPTION; do
 	o)
 	    ORACLE_SID=${OPTARG}
 	    ;;
-        j)
-            JSON=1
+  j)
+      JSON=1
 	    JSON_ATTR=${OPTARG}
-            ;;
-	a)
+      ;;
+  a)
 	    SQL_ARGS=${OPTARG}
 	    ;;
 	v)
 	    version
 	    ;;
-         \?)
-            exit 1
-            ;;
+	d)
+	    DISCOVER=1
+	    DISCOVER_ATTR=${OPTARG}
+	    ;;
+	\?)
+	    exit 1
+	    ;;
     esac
 done
 
-if [[ -f ${APP_DIR}/zabora.oraenv ]]; then
-    . ${APP_DIR}/zabora.oraenv
-else
-    ORAENV_ASK=NO
-    . /usr/local/bin/oraenv > /dev/null
-fi
 if [[ -f "${SQL%.sql}.sql" ]]; then
+    load_oracle
     rval=`sqlplus -s ${ORACLE_USER}/${ORACLE_PASS} @${SQL} "${SQL_ARGS}"`
     rcode="${?}"
     if [[ ${JSON} -eq 1 ]]; then
@@ -107,6 +119,60 @@ if [[ -f "${SQL%.sql}.sql" ]]; then
     else
        echo ${rval:-0}
     fi
+elif [[ ${DISCOVER} -eq 1 ]] && [[ ${DISCOVER_ATTR} == databases ]]; then
+    rval=$(databases)
+    rcode="${?}"
+    if [[ ${JSON} -eq 1 ]]; then
+       set -A rval ${rval}
+       echo '{'
+       echo '   "data":['
+       count=1
+       for i in ${rval[@]};do
+          output='{ "'{#${JSON_ATTR}}'":"'${i}'" }'
+          if (( ${count} < ${#rval[*]} )); then
+             output="${output},"
+          fi
+          echo "      ${output}"
+          let "count=count+1"
+       done
+       echo '   ]'
+       echo '}'
+    else
+       echo ${rval:-0}
+    fi
+elif [[ ${DISCOVER} -eq 1 ]] && [[ ${DISCOVER_ATTR} == tablespaces ]]; then
+    osids=$(databases)
+    rcode="${?}"
+    osidsc=$(echo ${osids} | wc -w)
+    j=1
+    for ORACLE_SID in ${osids}; do
+       load_oracle
+       rval=$(sqlplus -s ${ORACLE_USER}/${ORACLE_PASS} @${APP_DIR}/sql/tb_list.sql)
+       rcode="${?}"
+       if [[ ${JSON} -eq 1 ]]; then
+          set -A rval ${rval}
+          if [[ ${j} -eq 1 ]]; then
+             echo '{'
+             echo '   "data":['
+          fi
+          count=1
+          for i in ${rval[@]};do
+             echo "      { \""{#ORACLE_SID}"\":\""${ORACLE_SID}"\", "
+             output='  "'{#${JSON_ATTR}}'":"'${i}'" }'
+             if [[ ${count} -eq ${#rval[*]} ]] && [[ ${j} -eq ${osidsc} ]]; then
+                echo "      ${output}"
+                echo '   ]'
+                echo '}'
+             else
+                echo "      ${output},"
+             fi
+             let "count=count+1"
+          done
+       else
+          echo ${rval:-0}
+       fi
+       let "j=j+1"
+    done
 else
     echo "ZBX_NOTSUPPORTED"
     rcode="1"
