@@ -40,7 +40,7 @@ usage() {
     echo "  -o ARG(str)   Set SID to make the query."
     echo "  -j            Jsonify output."
     echo "  -v            Show the script version."
-    echo "  -d ARG(str)   Discover databases (dbs) or tablespaces (tbs)."
+    echo "  -d ARG(str)   Discover databases (db) or tablespaces (tbs)."
     echo ""
     exit 1
 }
@@ -119,7 +119,7 @@ if [[ -f "${SQL%.sql}.sql" ]]; then
     else
        echo ${rval:-0}
     fi
-elif [[ ${DISCOVER} -eq 1 ]] && [[ ${DISCOVER_ATTR} == dbs ]]; then
+elif [[ ${DISCOVER} -eq 1 ]] && [[ ${DISCOVER_ATTR} == db ]]; then
     rval=$(databases)
     rcode="${?}"
     if [[ ${JSON} -eq 1 ]]; then
