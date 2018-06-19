@@ -60,7 +60,7 @@ load_oracle() {
 }
 
 databases() {
-    echo $(ps -eo command | grep -v sed | sed -n 's/ora_pmon_\(.*\)/\1/p')
+    ps -eo command | grep -v sed | sed -n 's/ora_pmon_\(.*\)/\1/p'
 }
 #
 #################################################################################
