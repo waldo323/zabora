@@ -40,7 +40,7 @@ usage() {
     echo "  -o ARG(str)   Set SID to make the query."
     echo "  -j            Jsonify output."
     echo "  -v            Show the script version."
-    echo "  -d ARG(str)   Discover 'databases' or 'tablespaces'."
+    echo "  -d ARG(str)   Discover databases (dbs) or tablespaces (tbs)."
     echo ""
     exit 1
 }
@@ -119,7 +119,7 @@ if [[ -f "${SQL%.sql}.sql" ]]; then
     else
        echo ${rval:-0}
     fi
-elif [[ ${DISCOVER} -eq 1 ]] && [[ ${DISCOVER_ATTR} == databases ]]; then
+elif [[ ${DISCOVER} -eq 1 ]] && [[ ${DISCOVER_ATTR} == dbs ]]; then
     rval=$(databases)
     rcode="${?}"
     if [[ ${JSON} -eq 1 ]]; then
@@ -140,7 +140,7 @@ elif [[ ${DISCOVER} -eq 1 ]] && [[ ${DISCOVER_ATTR} == databases ]]; then
     else
        echo ${rval:-0}
     fi
-elif [[ ${DISCOVER} -eq 1 ]] && [[ ${DISCOVER_ATTR} == tablespaces ]]; then
+elif [[ ${DISCOVER} -eq 1 ]] && [[ ${DISCOVER_ATTR} == tbs ]]; then
     osids=$(databases)
     rcode="${?}"
     osidsc=$(echo ${osids} | wc -w)
