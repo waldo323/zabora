@@ -99,7 +99,7 @@ done
 
 if [[ -f "${SQL%.sql}.sql" ]]; then
     load_oracle
-    rval=$(sqlplus -S -L ${ORACLE_USER}/${ORACLE_PASS} @${SQL} "${SQL_ARGS}") || { echo "ZBX_NOTSUPPORTED"; exit 1; }
+    rval=$(sqlplus -S -L ${ORACLE_USER}/${ORACLE_PASS} @${SQL} "${SQL_ARGS}")
     rcode="${?}"
     if [[ ${JSON} -eq 1 ]]; then
        set -A rval ${rval}
