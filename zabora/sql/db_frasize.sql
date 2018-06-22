@@ -2,6 +2,7 @@ SET      pagesize 0
 SET      heading OFF
 SET      feedback OFF
 SET      verify OFF
+WHENEVER SQLERROR EXIT SQL.SQLCODE
 SELECT
     CASE
         WHEN cant = TO_CHAR(0) THEN TO_CHAR(0)

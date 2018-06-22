@@ -2,6 +2,7 @@ SET      pagesize 0
 SET      heading OFF
 SET      feedback OFF
 SET      verify OFF
+WHENEVER SQLERROR EXIT SQL.SQLCODE
 SELECT
     TO_CHAR(SUM(nvl(a.bytes - nvl(f.bytes,0),0) ),'FM99999999999999990') retvalue
 FROM

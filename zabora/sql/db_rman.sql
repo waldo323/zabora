@@ -2,6 +2,7 @@ SET      pagesize 0
 SET      heading OFF
 SET      feedback OFF
 SET	 verify OFF
+WHENEVER SQLERROR EXIT SQL.SQLCODE
 SELECT
     TRIM(DECODE(SUM(estado),0,0,NULL,-1,1) )
 FROM

@@ -99,7 +99,7 @@ done
 
 if [[ -f "${SQL%.sql}.sql" ]]; then
     load_oracle
-    rval=`sqlplus -s ${ORACLE_USER}/${ORACLE_PASS} @${SQL} "${SQL_ARGS}"`
+    rval=$(sqlplus -S -L ${ORACLE_USER}/${ORACLE_PASS} @${SQL} "${SQL_ARGS}") || { echo "ZBX_NOTSUPPORTED"; exit 1; }
     rcode="${?}"
     if [[ ${JSON} -eq 1 ]]; then
        set -A rval ${rval}
@@ -147,7 +147,7 @@ elif [[ ${DISCOVER} -eq 1 ]] && [[ ${DISCOVER_ATTR} == tbs ]]; then
     j=1
     for ORACLE_SID in ${osids}; do
        load_oracle
-       rval=$(sqlplus -s ${ORACLE_USER}/${ORACLE_PASS} @${APP_DIR}/sql/tb_list.sql)
+       rval=$(sqlplus -S -L ${ORACLE_USER}/${ORACLE_PASS} @${APP_DIR}/sql/tb_list.sql) || { echo "ZBX_NOTSUPPORTED"; exit 1; }
        rcode="${?}"
        if [[ ${JSON} -eq 1 ]]; then
           set -A rval ${rval}
