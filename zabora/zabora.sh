@@ -11,7 +11,7 @@ PATH=/usr/local/bin:${PATH}
 #
 APP_NAME=$(basename $0)
 APP_DIR=$(dirname $0)
-APP_VER="1.5.3.1"
+APP_VER="1.5.3.2"
 APP_WEB="https://github.com/huna79/zabora"
 #
 #################################################################################
@@ -21,7 +21,9 @@ APP_WEB="https://github.com/huna79/zabora"
 #  Load Oracle Environment
 # -------------------------
 #
-[ -x ${APP_DIR}/${APP_NAME%.*}.conf ] || . ${APP_DIR}/${APP_NAME%.*}.conf
+#[ -x ${APP_DIR}/${APP_NAME%.*}.conf ] || . ${APP_DIR}/${APP_NAME%.*}.conf
+ORACLE_USER="zabbix"
+ORACLE_PASS="zabsecret"
 #
 #################################################################################
 
@@ -40,7 +42,6 @@ usage() {
     echo "  -o ARG(str)   Set SID to make the query."
     echo "  -j            Jsonify output."
     echo "  -v            Show the script version."
-    echo "  -d ARG(str)   Discover databases (db) or tablespaces (tbs)."
     echo ""
     exit 1
 }
@@ -76,12 +77,13 @@ while getopts "s::a:o:hvj:d:" OPTION; do
 	    ;;
 	o)
 	    ORACLE_SID=${OPTARG}
+	    DISCOVER=0
 	    ;;
-  j)
-      JSON=1
+	j)
+	    JSON=1
 	    JSON_ATTR=${OPTARG}
-      ;;
-  a)
+	    ;;
+	a)
 	    SQL_ARGS=${OPTARG}
 	    ;;
 	v)
@@ -98,57 +100,23 @@ while getopts "s::a:o:hvj:d:" OPTION; do
 done
 
 if [[ -f "${SQL%.sql}.sql" ]]; then
-    load_oracle
-    rval=$(sqlplus -S -L ${ORACLE_USER}/${ORACLE_PASS} @${SQL} "${SQL_ARGS}") || { echo "ZBX_NOTSUPPORTED"; exit 1; }
-    rcode="${?}"
-    if [[ ${JSON} -eq 1 ]]; then
-       set -A rval ${rval}
-       echo '{'
-       echo '   "data":['
-       count=1
-       for i in ${rval[@]};do
-          output='{ "'{#${JSON_ATTR}}'":"'${i}'" }'
-          if (( ${count} < ${#rval[*]} )); then
-             output="${output},"
-          fi
-          echo "      ${output}"
-          let "count=count+1"
-       done
-       echo '   ]'
-       echo '}'
+    if [[ ${DISCOVER:-1} -eq 1 ]]; then
+       osids=$(databases)
+       rcode="${?}"
+       osidsc=$(echo ${osids} | wc -w)
     else
-       echo ${rval:-0}
+       osids=${ORACLE_SID}
+       osidsc=1
     fi
-elif [[ ${DISCOVER} -eq 1 ]] && [[ ${DISCOVER_ATTR} == db ]]; then
-    rval=$(databases)
-    rcode="${?}"
-    if [[ ${JSON} -eq 1 ]]; then
-       set -A rval ${rval}
-       echo '{'
-       echo '   "data":['
-       count=1
-       for i in ${rval[@]};do
-          output='{ "'{#${JSON_ATTR}}'":"'${i}'" }'
-          if (( ${count} < ${#rval[*]} )); then
-             output="${output},"
-          fi
-          echo "      ${output}"
-          let "count=count+1"
-       done
-       echo '   ]'
-       echo '}'
-    else
-       echo ${rval:-0}
-    fi
-elif [[ ${DISCOVER} -eq 1 ]] && [[ ${DISCOVER_ATTR} == tbs ]]; then
-    osids=$(databases)
-    rcode="${?}"
-    osidsc=$(echo ${osids} | wc -w)
     j=1
     for ORACLE_SID in ${osids}; do
-       load_oracle
-       rval=$(sqlplus -S -L ${ORACLE_USER}/${ORACLE_PASS} @${APP_DIR}/sql/tb_list.sql) || { echo "ZBX_NOTSUPPORTED"; exit 1; }
-       rcode="${?}"
+       if [[ ! ${SQL} =~ db_list$ ]]; then
+          load_oracle
+          rval=$(sqlplus -S -L ${ORACLE_USER}/${ORACLE_PASS} @${SQL} "${SQL_ARGS}") || { echo "ZBX_NOTSUPPORTED"; exit 1; }
+          rcode="${?}"
+       else
+          rval=${ORACLE_SID}
+       fi
        if [[ ${JSON} -eq 1 ]]; then
           set -A rval ${rval}
           if [[ ${j} -eq 1 ]]; then
@@ -157,8 +125,12 @@ elif [[ ${DISCOVER} -eq 1 ]] && [[ ${DISCOVER_ATTR} == tbs ]]; then
           fi
           count=1
           for i in ${rval[@]};do
-             echo "      { \""{#ORACLE_SID}"\":\""${ORACLE_SID}"\", "
-             output='  "'{#${JSON_ATTR}}'":"'${i}'" }'
+             if [[ ${DISCOVER:-1} -eq 1 ]] && [[ ! ${SQL} =~ db_list$ ]]; then
+                echo "      { \""{#ORACLE_SID}"\":\""${ORACLE_SID}"\", "
+                output='  "'{#${JSON_ATTR}}'":"'${i}'" }'
+             else
+                output='{ "'{#${JSON_ATTR}}'":"'${i}'" }'
+             fi
              if [[ ${count} -eq ${#rval[*]} ]] && [[ ${j} -eq ${osidsc} ]]; then
                 echo "      ${output}"
                 echo '   ]'
