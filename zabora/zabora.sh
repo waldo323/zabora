@@ -21,9 +21,7 @@ APP_WEB="https://github.com/huna79/zabora"
 #  Load Oracle Environment
 # -------------------------
 #
-#[ -x ${APP_DIR}/${APP_NAME%.*}.conf ] || . ${APP_DIR}/${APP_NAME%.*}.conf
-ORACLE_USER="zabbix"
-ORACLE_PASS="zabsecret"
+[ -x ${APP_DIR}/${APP_NAME%.*}.conf ] || . ${APP_DIR}/${APP_NAME%.*}.conf
 #
 #################################################################################
 
