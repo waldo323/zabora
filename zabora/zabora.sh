@@ -1,4 +1,4 @@
-#!/usr/bin/env ksh
+#!/usr/bin/env bash
 rcode=0
 PATH=/usr/local/bin:${PATH}
 
@@ -112,7 +112,7 @@ if [[ -f "${SQL%.sql}.sql" ]]; then
           rval=${ORACLE_SID}
        fi
        if [[ ${JSON} -eq 1 ]]; then
-          set -A rval ${rval}
+          rval=(${rval})
           if [[ ${j} -eq 1 ]]; then
              echo '{'
              echo '   "data":['
