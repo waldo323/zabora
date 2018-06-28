@@ -87,10 +87,6 @@ while getopts "s::a:o:hvj:d:" OPTION; do
 	v)
 	    version
 	    ;;
-	d)
-	    DISCOVER=1
-	    DISCOVER_ATTR=${OPTARG}
-	    ;;
 	\?)
 	    exit 1
 	    ;;
