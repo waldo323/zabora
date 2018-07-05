@@ -13,6 +13,7 @@ WHERE
         'SYS',
         'SYSTEM',
         'WMSYS',
-        'SYSMAN'
+        'SYSMAN',
+        'GSMADMIN_INTERNAL'
     );
 QUIT;
