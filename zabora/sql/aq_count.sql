@@ -7,7 +7,7 @@ SELECT
     TO_CHAR(v.waiting + v.ready,'FM99999999999999990') sum_open
 FROM
     dba_queues q,
-    v$aq v
+    gv$aq v
 WHERE
     q.qid = v.qid
     AND q.name = '&1';
