@@ -4,31 +4,10 @@ SET      feedback OFF
 SET	 verify OFF
 WHENEVER SQLERROR EXIT SQL.SQLCODE
 SELECT
-    TRIM(DECODE(SUM(estado),0,0,NULL,-1,1) )
+    TO_CHAR(trunc(MAX( (end_time) - TO_DATE('01-JAN-1970','DD-MON-YYYY') ) * (86400) ),'FM99999999999999990') retvalue
 FROM
-    (
-        SELECT
-            to_number(DECODE(status,'COMPLETED',0,'RUNNING',0,'COMPLETED WITH WARNINGS',1,'COMPLETED WITH ERRORS',2,3) ) "ESTADO",
-            TO_CHAR(operation)
-            || '('
-            || TO_CHAR(nvl(object_type,'-') )
-            || ') - '
-            || TO_CHAR(status)
-            || ' - DURACION: '
-            || TO_CHAR(round( (end_time - start_time) * 24 * 60,2) )
-            || ' MIN' "DETALLE"
-        FROM
-            v$rman_status
-        WHERE
-            start_time > SYSDATE - 1
-            AND   command_id = (
-                SELECT
-                    MAX(command_id)
-                FROM
-                    v$rman_status
-            )
-        ORDER BY
-            estado DESC,
-            start_time
-    );
+    v$rman_backup_job_details
+WHERE
+    status = 'COMPLETED'
+    AND input_type = 'DB INCR';
 QUIT;
