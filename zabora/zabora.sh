@@ -175,9 +175,8 @@ elif [[ -f "${SQL%.sql}.sql" ]]; then
         echo '   ]'
         echo '}'
     else
-        for ((i=0; i<${#dbnames[*]}; i++)); do
-            values=(${dbvalues[${i}]})
-            echo "${dbnames[${i}]}: ${values[*]}"
+        for dbvalue in "${dbvalues[@]}"; do
+            echo $dbvalue
         done
     fi
 else
