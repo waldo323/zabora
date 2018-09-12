@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-rcode=0
 PATH=/usr/local/bin:${PATH}
 
 #################################################################################
@@ -11,7 +10,7 @@ PATH=/usr/local/bin:${PATH}
 #
 APP_NAME=$(basename $0)
 APP_DIR=$(dirname $0)
-APP_VER="1.5.3.3"
+APP_VER="1.5.3.4"
 APP_WEB="https://github.com/huna79/zabora"
 #
 #################################################################################
@@ -61,6 +60,11 @@ load_oracle() {
 databases() {
     ps -eo command | grep -v sed | sed -n 's/ora_pmon_\(.*\)/\1/p'
 }
+
+zabbix_not_support() {
+    echo "ZBX_NOTSUPPORTED"
+    exit 1
+}
 #
 #################################################################################
 
@@ -93,55 +97,89 @@ while getopts "s::a:o:hvj:" OPTION; do
     esac
 done
 
-if [[ -f "${SQL%.sql}.sql" ]]; then
-    if [[ ${DISCOVER:-1} -eq 1 ]]; then
-       osids=$(databases)
-       rcode="${?}"
-       osidsc=$(echo ${osids} | wc -w)
-    else
-       osids=${ORACLE_SID}
-       osidsc=1
-    fi
-    j=1
-    for ORACLE_SID in ${osids}; do
-       if [[ ! ${SQL} =~ db_list$ ]]; then
-          load_oracle
-          rval=$(sqlplus -S -L ${ORACLE_USER}/${ORACLE_PASS} @${SQL} "${SQL_ARGS}") || { echo "ZBX_NOTSUPPORTED"; exit 1; }
-          rcode="${?}"
-       else
-          rval=${ORACLE_SID}
-       fi
-       if [[ ${JSON} -eq 1 ]]; then
-          rval=(${rval})
-          if [[ ${j} -eq 1 ]]; then
-             echo '{'
-             echo '   "data":['
-          fi
-          count=1
-          for i in ${rval[@]};do
-             if [[ ${DISCOVER:-1} -eq 1 ]] && [[ ! ${SQL} =~ db_list$ ]]; then
-                echo "      { \""{#ORACLE_SID}"\":\""${ORACLE_SID}"\", "
-                output='  "'{#${JSON_ATTR}}'":"'${i}'" }'
-             else
-                output='{ "'{#${JSON_ATTR}}'":"'${i}'" }'
-             fi
-             if [[ ${count} -eq ${#rval[*]} ]] && [[ ${j} -eq ${osidsc} ]]; then
-                echo "      ${output}"
-                echo '   ]'
-                echo '}'
-             else
-                echo "      ${output},"
-             fi
-             let "count=count+1"
-          done
-       else
-          echo ${rval:-0}
-       fi
-       let "j=j+1"
-    done
-else
-    echo "ZBX_NOTSUPPORTED"
-    rcode="1"
-fi
+if [[ ${SQL} =~ db_list$ ]]; then
+    values=($(databases))
 
-exit ${rcode}
+    if [ -z "${values}" ]; then
+        zabbix_not_support
+    fi
+
+    if [[ ${JSON} -eq 1 ]]; then
+        echo '{'
+        echo '   "data":['
+    
+        for ((i=0; i<${#values[*]}; i++)); do
+            output='{ "'{#${JSON_ATTR}}'":"'${values[${i}]}'" }'
+    
+            if ((${i} != ${#values[*]}-1)); then
+                output+=,
+            fi
+    
+            echo "      ${output}"
+        done
+    
+        echo '   ]'
+        echo '}'
+    else
+        for value in ${values[*]}; do
+            echo ${value}
+        done
+    fi
+elif [[ -f "${SQL%.sql}.sql" ]]; then
+    if [[ ${DISCOVER:-1} -eq 1 ]]; then
+        databases=$(databases)
+
+        if [ -z "${databases}" ]; then
+            zabbix_not_support
+        fi
+    else
+        databases=${ORACLE_SID}
+    fi
+    
+    i=0
+    for database in ${databases}; do
+        ORACLE_SID=${database}
+        load_oracle
+        rval=$(sqlplus -S -L ${ORACLE_USER}/${ORACLE_PASS} @${SQL} "${SQL_ARGS}")
+    
+        if [ ${?} -ne 0 ]; then
+            zabbix_not_support
+        fi
+    
+        if [ -n "${rval}" ]; then
+            dbnames[${i}]=${database}
+            dbvalues[${i}]=${rval}
+            ((i++))
+        fi
+    done
+    
+    if [[ ${JSON} -eq 1 ]]; then
+        echo '{'
+        echo '   "data":['
+        
+        for ((i=0; i<${#dbnames[*]}; i++)); do
+            values=(${dbvalues[${i}]})
+        
+            for ((j=0; j<${#values[*]}; j++)); do
+                echo '      { "'{#ORACLE_SID}'":"'${dbnames[${i}]}'",'
+                output='"'{#${JSON_ATTR}}'":"'${values[${j}]}'" }'
+        
+                if ((${i} != ${#dbnames[*]}-1 || ${j} != ${#values[*]}-1)); then
+                    output+=,
+                fi
+        
+                echo "        ${output}"
+            done
+        done
+    
+        echo '   ]'
+        echo '}'
+    else
+        for ((i=0; i<${#dbnames[*]}; i++)); do
+            values=(${dbvalues[${i}]})
+            echo "${dbnames[${i}]}: ${values[*]}"
+        done
+    fi
+else
+    zabbix_not_support
+fi
