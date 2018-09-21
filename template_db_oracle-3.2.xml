@@ -293,7 +293,7 @@
                     <snmp_community/>
                     <multiplier>0</multiplier>
                     <snmp_oid/>
-                    <key>zabora[{$ORACLE_SID},db_metric,'Response Time Per Txn']</key>
+                    <key>zabora[{$ORACLE_SID},db_metric,Response Time Per Txn]</key>
                     <delay>60</delay>
                     <history>30</history>
                     <trends>30</trends>
