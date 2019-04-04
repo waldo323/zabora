@@ -10,7 +10,7 @@ PATH=/usr/local/bin:${PATH}
 #
 APP_NAME=$(basename $0)
 APP_DIR=$(dirname $0)
-APP_VER="1.5.3.4"
+APP_VER="1.5.3.5"
 APP_WEB="https://github.com/huna79/zabora"
 #
 #################################################################################
