@@ -2,6 +2,7 @@ SET      pagesize 0
 SET      heading OFF
 SET      feedback OFF
 SET      verify OFF
+WHENEVER SQLERROR EXIT SQL.SQLCODE
 SELECT
     n.wait_class || ':' ||
     TO_CHAR(m.time_waited/m.INTSIZE_CSEC,'FM99999999999999990.0000') retvalue
