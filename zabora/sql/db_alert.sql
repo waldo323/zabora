@@ -21,5 +21,9 @@ FROM
     oneday
 WHERE
     ORIGINATING_TIMESTAMP > systimestamp-60/1440
-    AND message_text LIKE '%ORA-%';
+    AND message_text LIKE '%ORA-%'
+    AND message_text NOT LIKE '%result of ORA-609%'
+    AND message_text NOT LIKE '%result of ORA-28%'
+    AND message_text NOT LIKE '%(ORA-3136)%'
+    AND message_text NOT LIKE '%ORA-01013:%';
 QUIT;
