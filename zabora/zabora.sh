@@ -10,7 +10,7 @@ PATH=/usr/local/bin:${PATH}
 #
 APP_NAME=$(basename $0)
 APP_DIR=$(dirname $0)
-APP_VER="1.5.3.5"
+APP_VER="1.5.3.6"
 APP_WEB="https://github.com/huna79/zabora"
 #
 #################################################################################
@@ -107,17 +107,17 @@ if [[ ${SQL} =~ db_list$ ]]; then
     if [[ ${JSON} -eq 1 ]]; then
         echo '{'
         echo '   "data":['
-    
+
         for ((i=0; i<${#values[*]}; i++)); do
             output='{ "'{#${JSON_ATTR}}'":"'${values[${i}]}'" }'
-    
+
             if ((${i} != ${#values[*]}-1)); then
                 output+=,
             fi
-    
+
             echo "      ${output}"
         done
-    
+
         echo '   ]'
         echo '}'
     else
@@ -135,43 +135,43 @@ elif [[ -f "${SQL%.sql}.sql" ]]; then
     else
         databases=${ORACLE_SID}
     fi
-    
+
     i=0
     for database in ${databases}; do
         ORACLE_SID=${database}
         load_oracle
         rval=$(sqlplus -S -L ${ORACLE_USER}/${ORACLE_PASS} @${SQL} "${SQL_ARGS}")
-    
+
         if [ ${?} -ne 0 ]; then
             zabbix_not_support
         fi
-    
+
         if [ -n "${rval}" ]; then
             dbnames[${i}]=${database}
             dbvalues[${i}]=${rval}
             ((i++))
         fi
     done
-    
+
     if [[ ${JSON} -eq 1 ]]; then
         echo '{'
         echo '   "data":['
-        
+
         for ((i=0; i<${#dbnames[*]}; i++)); do
             values=(${dbvalues[${i}]})
-        
+
             for ((j=0; j<${#values[*]}; j++)); do
                 echo '      { "'{#ORACLE_SID}'":"'${dbnames[${i}]}'",'
                 output='"'{#${JSON_ATTR}}'":"'${values[${j}]}'" }'
-        
+
                 if ((${i} != ${#dbnames[*]}-1 || ${j} != ${#values[*]}-1)); then
                     output+=,
                 fi
-        
+
                 echo "        ${output}"
             done
         done
-    
+
         echo '   ]'
         echo '}'
     else
