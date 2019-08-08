@@ -2,10 +2,22 @@ SET      pagesize 0
 SET      heading OFF
 SET      feedback OFF
 SET	 verify OFF
-select count(*)
-from dba_objects o 
-where status != 'VALID'
-and not exists (select 1 from dba_snapshots s where s.name = o.object_name and s.status ='VALID')
-and o.object_name not like 'BIN$%'
-and o.object_type <> 'SYNONYM';
+WHENEVER SQLERROR EXIT SQL.SQLCODE
+SELECT
+    COUNT(*)
+FROM
+    dba_objects o
+WHERE
+    status != 'VALID'
+    AND   NOT EXISTS (
+        SELECT
+            1
+        FROM
+            dba_snapshots s
+        WHERE
+            s.name = o.object_name
+            AND   s.status = 'VALID'
+    )
+    AND   o.object_name NOT LIKE 'BIN$%'
+    AND   o.object_type <> 'SYNONYM';
 QUIT;

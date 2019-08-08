@@ -4,12 +4,9 @@ SET      feedback OFF
 SET	 verify OFF
 WHENEVER SQLERROR EXIT SQL.SQLCODE
 SELECT
-    COUNT(*)
+    round(used_percent,2) pct
 FROM
-    v$session,
-    dba_waiters
+    dba_tablespace_usage_metrics
 WHERE
-    seconds_in_wait / 60 >= 1
-    AND   state = 'WAITING'
-    AND   sid = holding_session;
+    tablespace_name = upper('&1');
 QUIT;

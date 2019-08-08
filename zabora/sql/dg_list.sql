@@ -4,7 +4,7 @@ SET	 feedback OFF
 SET	 verify OFF
 WHENEVER SQLERROR EXIT SQL.SQLCODE
 SELECT
-    TRIM(tablespace_name)
+    TRIM(name)
 FROM
-    dba_tablespaces;
+    v$asm_diskgroup_stat;
 QUIT;

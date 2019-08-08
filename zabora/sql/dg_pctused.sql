@@ -4,12 +4,9 @@ SET      feedback OFF
 SET	 verify OFF
 WHENEVER SQLERROR EXIT SQL.SQLCODE
 SELECT
-    COUNT(*)
+    round( ( (total_mb - free_mb) / total_mb) * 100,2) AS pct
 FROM
-    v$session,
-    dba_waiters
+    v$asm_diskgroup_stat
 WHERE
-    seconds_in_wait / 60 >= 1
-    AND   state = 'WAITING'
-    AND   sid = holding_session;
+    name = upper('&1');
 QUIT;

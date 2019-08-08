@@ -4,12 +4,11 @@ SET      feedback OFF
 SET	 verify OFF
 WHENEVER SQLERROR EXIT SQL.SQLCODE
 SELECT
-    COUNT(*)
+    TO_CHAR(v.waiting + v.ready,'FM99999999999999990') sum_open
 FROM
-    v$session,
-    dba_waiters
+    dba_queues q,
+    gv$aq v
 WHERE
-    seconds_in_wait / 60 >= 1
-    AND   state = 'WAITING'
-    AND   sid = holding_session;
+    q.qid = v.qid
+    AND q.name = '&1';
 QUIT;

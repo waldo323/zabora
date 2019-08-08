@@ -2,19 +2,39 @@ SET      pagesize 0
 SET      heading OFF
 SET      feedback OFF
 SET	 verify OFF
-SELECT	 TRIM(TRUNC ((10000 * (x.used)) / y.mbytes) / 100)  "pct_used"
-FROM	 (SELECT   b.tablespace_name NAME,
-	 (SUM (b.BYTES) / COUNT (DISTINCT a.file_id || '.' || a.block_id) - SUM (DECODE (a.BYTES, NULL, 0, a.BYTES)) / COUNT (DISTINCT b.file_id)) used,
-	 (SUM (DECODE (a.BYTES, NULL, 0, a.BYTES)) / COUNT (DISTINCT b.file_id)) free
-FROM	 SYS.dba_data_files b, SYS.dba_free_space a
-WHERE	 a.tablespace_name= UPPER('&1')
-AND	 a.tablespace_name = b.tablespace_name
-GROUP BY a.tablespace_name, b.tablespace_name) x,
-	 (SELECT   c.tablespace_name NAME,
-	 (SUM (NVL (DECODE (c.maxbytes, 0, c.BYTES, c.maxbytes),
-	 c.BYTES))) mbytes
-FROM	 SYS.dba_data_files c
-GROUP BY c.tablespace_name) y
-WHERE	 x.NAME = y.NAME;
---AND	 x.name<>'UNDOTBS1';
+WHENEVER SQLERROR EXIT SQL.SQLCODE
+SELECT
+    TO_CHAR(SUM(sum_bytes),'FM99999999999999990') bytes
+FROM
+    (
+        SELECT
+            1,
+            d.tablespace_name,
+            nvl(SUM(bytes),0) AS sum_bytes
+        FROM
+            dba_data_files d,
+            dba_tablespaces t
+        WHERE
+            d.tablespace_name = t.tablespace_name
+        GROUP BY
+            1,
+            d.tablespace_name
+        UNION ALL
+        SELECT
+            2,
+            d.tablespace_name,
+            nvl(SUM(bytes),0) AS sum_bytes
+        FROM
+            dba_temp_files d,
+            dba_tablespaces t
+        WHERE
+            d.tablespace_name = t.tablespace_name
+        GROUP BY
+            2,
+            d.tablespace_name
+    )
+WHERE
+    tablespace_name = '&1'
+GROUP BY
+    tablespace_name;
 QUIT;

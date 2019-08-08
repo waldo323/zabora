@@ -5,10 +5,10 @@ SET      verify OFF
 WHENEVER SQLERROR EXIT SQL.SQLCODE
 SELECT
     CASE
-        WHEN cant = 0  THEN 0
+        WHEN cant = TO_CHAR(0) THEN TO_CHAR(0)
         ELSE (
             SELECT
-                DECODE(nvl(space_used,0),0,0,((space_used - space_reclaimable) / space_limit) * 100)
+                TO_CHAR(space_used - space_reclaimable,'FM99999999999999990')
             FROM
                 v$recovery_file_dest
         )
@@ -16,7 +16,7 @@ SELECT
 FROM
     (
         SELECT
-            COUNT(*) cant
+            TO_CHAR(COUNT(*) ) cant
         FROM
             v$recovery_file_dest
     );

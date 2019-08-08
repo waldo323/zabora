@@ -2,11 +2,16 @@ SET      pagesize 0
 SET      heading OFF
 SET      feedback OFF
 SET	 verify OFF
-select      CASE METRIC_NAME
-            WHEN 'SQL Service Response Time' then ROUND((AVERAGE / 100),2)
-            WHEN 'Response Time Per Txn' then ROUND((AVERAGE / 100),2)
-            ELSE AVERAGE
-            END AVERAGE
-from    SYS.V_$SYSMETRIC_SUMMARY 
-where   METRIC_NAME in ('&1');
+WHENEVER SQLERROR EXIT SQL.SQLCODE
+SELECT
+        CASE metric_name
+            WHEN 'SQL Service Response Time'   THEN round( (average / 100),2)
+            WHEN 'Response Time Per Txn'       THEN round( (average / 100),2)
+            ELSE average
+        END
+    average
+FROM
+    sys.v_$sysmetric_summary
+WHERE
+    metric_id = '&1';
 QUIT;
