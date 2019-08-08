@@ -52,9 +52,17 @@ ORACLE_PASS|xxxxxxx
 ## Zabbix
 
 ```
-#~ git clone https://github.com/sergiotocalini/zabora.git
+#~ git clone https://github.com/d9394/zabora.git
 #~ sudo ./zabora/deploy_zabbix.sh "${ORACLE_USER}" "${ORACLE_PASS}"
 #~ sudo systemctl restart zabbix-agent
 ```
+### Other
+
+!!!make sure zabbix has right env, and edit zabora.oraenv file
+#~ sudo vi zabora.oraenv
+
+!!!you should add a Macros in the host item setting like:
+  Macro             Value
+{$ORACLE_SID}   =   orcl
 
 *Note: the installation has to be executed on the zabbix agent host and you have to import the template on the zabbix web. The default installation directory is /etc/zabbix/scripts/agentd/zabora*
