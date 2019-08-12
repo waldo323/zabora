@@ -3,19 +3,19 @@ Zabbix Agent - Oracle
 
 # Dependencies
 ## Packages
-* ksh
+* bash
 
 ### Debian/Ubuntu
 
 ```
-#~ sudo apt install ksh
+#~ sudo apt install bash
 #~
 ```
 
 ### Red Hat
 
 ```
-#~ sudo yum install ksh
+#~ sudo yum install bash
 #~
 ```
 
